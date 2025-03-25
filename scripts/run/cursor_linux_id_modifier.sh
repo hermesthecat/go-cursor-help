@@ -1,25 +1,25 @@
 #!/bin/bash
 
-# 设置错误处理
+# Set error handling
 set -e
 
-# 定义日志文件路径
+# Define log file path
 LOG_FILE="/tmp/cursor_mac_id_modifier.log"
 
-# 初始化日志文件
+# Initialize log file
 initialize_log() {
-    echo "========== Cursor ID 修改工具日志开始 $(date) ==========" > "$LOG_FILE"
+    echo "========== Cursor ID Modification Tool Log Start $(date) ==========" > "$LOG_FILE"
     chmod 644 "$LOG_FILE"
 }
 
-# 颜色定义
+# Color definitions
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# 日志函数 - 同时输出到终端和日志文件
+# Log functions - Output to both terminal and log file
 log_info() {
     echo -e "${GREEN}[INFO]${NC} $1"
     echo "[INFO] $(date '+%Y-%m-%d %H:%M:%S') $1" >> "$LOG_FILE"
@@ -40,17 +40,17 @@ log_debug() {
     echo "[DEBUG] $(date '+%Y-%m-%d %H:%M:%S') $1" >> "$LOG_FILE"
 }
 
-# 记录命令输出到日志文件
+# Record command output to log file
 log_cmd_output() {
     local cmd="$1"
     local msg="$2"
-    echo "[CMD] $(date '+%Y-%m-%d %H:%M:%S') 执行命令: $cmd" >> "$LOG_FILE"
+    echo "[CMD] $(date '+%Y-%m-%d %H:%M:%S') Execute command: $cmd" >> "$LOG_FILE"
     echo "[CMD] $msg:" >> "$LOG_FILE"
     eval "$cmd" 2>&1 | tee -a "$LOG_FILE"
     echo "" >> "$LOG_FILE"
 }
 
-# 获取当前用户
+# Get current user
 get_current_user() {
     if [ "$EUID" -eq 0 ]; then
         echo "$SUDO_USER"
@@ -61,56 +61,56 @@ get_current_user() {
 
 CURRENT_USER=$(get_current_user)
 if [ -z "$CURRENT_USER" ]; then
-    log_error "无法获取用户名"
+    log_error "Unable to get username"
     exit 1
 fi
 
-# 定义配置文件路径
+# Define configuration file paths
 STORAGE_FILE="$HOME/Library/Application Support/Cursor/User/globalStorage/storage.json"
 BACKUP_DIR="$HOME/Library/Application Support/Cursor/User/globalStorage/backups"
 
-# 定义 Cursor 应用程序路径
+# Define Cursor application path
 CURSOR_APP_PATH="/Applications/Cursor.app"
 
-# 检查权限
+# Check permissions
 check_permissions() {
     if [ "$EUID" -ne 0 ]; then
-        log_error "请使用 sudo 运行此脚本"
-        echo "示例: sudo $0"
+        log_error "Please run this script with sudo"
+        echo "Example: sudo $0"
         exit 1
     fi
 }
 
-# 检查并关闭 Cursor 进程
+# Check and kill Cursor process
 check_and_kill_cursor() {
-    log_info "检查 Cursor 进程..."
+    log_info "Checking Cursor process..."
     
     local attempt=1
     local max_attempts=5
     
-    # 函数：获取进程详细信息
+    # Function: Get process details
     get_process_details() {
         local process_name="$1"
-        log_debug "正在获取 $process_name 进程详细信息："
+        log_debug "Getting $process_name process details:"
         ps aux | grep -i "/Applications/Cursor.app" | grep -v grep
     }
     
     while [ $attempt -le $max_attempts ]; do
-        # 使用更精确的匹配来获取 Cursor 进程
+        # Use more precise matching to get Cursor process
         CURSOR_PIDS=$(ps aux | grep -i "/Applications/Cursor.app" | grep -v grep | awk '{print $2}')
         
         if [ -z "$CURSOR_PIDS" ]; then
-            log_info "未发现运行中的 Cursor 进程"
+            log_info "No running Cursor process found"
             return 0
         fi
         
-        log_warn "发现 Cursor 进程正在运行"
+        log_warn "Found Cursor process running"
         get_process_details "cursor"
         
-        log_warn "尝试关闭 Cursor 进程..."
+        log_warn "Attempting to close Cursor process..."
         
         if [ $attempt -eq $max_attempts ]; then
-            log_warn "尝试强制终止进程..."
+            log_warn "Attempting to force terminate process..."
             kill -9 $CURSOR_PIDS 2>/dev/null || true
         else
             kill $CURSOR_PIDS 2>/dev/null || true
@@ -118,26 +118,26 @@ check_and_kill_cursor() {
         
         sleep 1
         
-        # 同样使用更精确的匹配来检查进程是否还在运行
+        # Also use more precise matching to check if the process is still running
         if ! ps aux | grep -i "/Applications/Cursor.app" | grep -v grep > /dev/null; then
-            log_info "Cursor 进程已成功关闭"
+            log_info "Cursor process successfully closed"
             return 0
         fi
         
-        log_warn "等待进程关闭，尝试 $attempt/$max_attempts..."
+        log_warn "Waiting for process to close, attempt $attempt/$max_attempts..."
         ((attempt++))
     done
     
-    log_error "在 $max_attempts 次尝试后仍无法关闭 Cursor 进程"
+    log_error "Unable to close Cursor process after $max_attempts attempts"
     get_process_details "cursor"
-    log_error "请手动关闭进程后重试"
+    log_error "Please close the process manually and try again"
     exit 1
 }
 
-# 备份配置文件
+# Backup configuration file
 backup_config() {
     if [ ! -f "$STORAGE_FILE" ]; then
-        log_warn "配置文件不存在，跳过备份"
+        log_warn "Configuration file does not exist, skipping backup"
         return 0
     fi
     
@@ -147,296 +147,296 @@ backup_config() {
     if cp "$STORAGE_FILE" "$backup_file"; then
         chmod 644 "$backup_file"
         chown "$CURRENT_USER" "$backup_file"
-        log_info "配置已备份到: $backup_file"
+        log_info "Configuration backed up to: $backup_file"
     else
-        log_error "备份失败"
+        log_error "Backup failed"
         exit 1
     fi
 }
 
-# 生成随机 ID
+# Generate random ID
 generate_random_id() {
-    # 生成32字节(64个十六进制字符)的随机数
+    # Generate 32 bytes (64 hexadecimal characters) of random numbers
     openssl rand -hex 32
 }
 
-# 生成随机 UUID
+# Generate random UUID
 generate_uuid() {
     uuidgen | tr '[:upper:]' '[:lower:]'
 }
 
-# 修改现有文件
+# Modify existing file
 modify_or_add_config() {
     local key="$1"
     local value="$2"
     local file="$3"
     
     if [ ! -f "$file" ]; then
-        log_error "文件不存在: $file"
+        log_error "File does not exist: $file"
         return 1
     fi
     
-    # 确保文件可写
+    # Ensure file is writable
     chmod 644 "$file" || {
-        log_error "无法修改文件权限: $file"
+        log_error "Unable to modify file permissions: $file"
         return 1
     }
     
-    # 创建临时文件
+    # Create temporary file
     local temp_file=$(mktemp)
     
-    # 检查key是否存在
+    # Check if key exists
     if grep -q "\"$key\":" "$file"; then
-        # key存在,执行替换
+        # key exists, execute replace
         sed "s/\"$key\":[[:space:]]*\"[^\"]*\"/\"$key\": \"$value\"/" "$file" > "$temp_file" || {
-            log_error "修改配置失败: $key"
+            log_error "Failed to modify configuration: $key"
             rm -f "$temp_file"
             return 1
         }
     else
-        # key不存在,添加新的key-value对
+        # key does not exist, add new key-value pair
         sed "s/}$/,\n    \"$key\": \"$value\"\n}/" "$file" > "$temp_file" || {
-            log_error "添加配置失败: $key"
+            log_error "Failed to add configuration: $key"
             rm -f "$temp_file"
             return 1
         }
     fi
     
-    # 检查临时文件是否为空
+    # Check if temporary file is empty
     if [ ! -s "$temp_file" ]; then
-        log_error "生成的临时文件为空"
+        log_error "Generated temporary file is empty"
         rm -f "$temp_file"
         return 1
     fi
     
-    # 使用 cat 替换原文件内容
+    # Use cat to replace original file content
     cat "$temp_file" > "$file" || {
-        log_error "无法写入文件: $file"
+        log_error "Unable to write to file: $file"
         rm -f "$temp_file"
         return 1
     }
     
     rm -f "$temp_file"
     
-    # 恢复文件权限
+    # Restore file permissions
     chmod 444 "$file"
     
     return 0
 }
 
-# 生成新的配置
+# Generate new configuration
 generate_new_config() {
     echo
-    log_warn "机器码重置选项"
+    log_warn "Machine Code Reset Option"
     
-    # 使用菜单选择函数询问用户是否重置机器码
-    select_menu_option "是否需要重置机器码? (通常情况下，只修改js文件即可)：" "不重置 - 仅修改js文件即可|重置 - 同时修改配置文件和机器码" 0
+    # Use menu selection function to ask user if they want to reset machine code
+    select_menu_option "Do you want to reset machine code? (Usually, just modifying js file is enough)：" "No reset - Just modify js file|Reset - Modify both configuration file and machine code" 0
     reset_choice=$?
     
-    # 记录日志以便调试
-    echo "[INPUT_DEBUG] 机器码重置选项选择: $reset_choice" >> "$LOG_FILE"
+    # Record log for debugging
+    echo "[INPUT_DEBUG] Machine code reset option selected: $reset_choice" >> "$LOG_FILE"
     
-    # 处理用户选择 - 索引0对应"不重置"选项，索引1对应"重置"选项
+    # Handle user selection - Index 0 corresponds to "No reset" option, Index 1 corresponds to "Reset" option
     if [ "$reset_choice" = "1" ]; then
-        log_info "您选择了重置机器码"
+        log_info "You chose to reset machine code"
         
-        # 确保配置文件目录存在
+        # Ensure configuration file directory exists
         if [ -f "$STORAGE_FILE" ]; then
-            log_info "发现已有配置文件: $STORAGE_FILE"
+            log_info "Found existing configuration file: $STORAGE_FILE"
             
-            # 备份现有配置（以防万一）
+            # Backup existing configuration (just in case)
             backup_config
             
-            # 生成并设置新的设备ID
+            # Generate and set new deviceID
             local new_device_id=$(generate_uuid)
             local new_machine_id="auth0|user_$(openssl rand -hex 16)"
             
-            log_info "正在设置新的设备和机器ID..."
-            log_debug "新设备ID: $new_device_id"
-            log_debug "新机器ID: $new_machine_id"
+            log_info "Setting new device and machineID..."
+            log_debug "New deviceID: $new_device_id"
+            log_debug "New machineID: $new_machine_id"
             
-            # 修改配置文件
+            # Modify configuration file
             if modify_or_add_config "deviceId" "$new_device_id" "$STORAGE_FILE" && \
                modify_or_add_config "machineId" "$new_machine_id" "$STORAGE_FILE"; then
-                log_info "配置文件修改成功"
+                log_info "Configuration file modified successfully"
             else
-                log_error "配置文件修改失败"
+                log_error "Failed to modify configuration file"
             fi
         else
-            log_warn "未找到配置文件，这是正常的，脚本将跳过ID修改"
+            log_warn "Configuration file not found, this is normal, the script will skip ID modification"
         fi
     else
-        log_info "您选择了不重置机器码，将仅修改js文件"
+        log_info "You chose not to reset machine code, the script will only modify js file"
         
-        # 确保配置文件目录存在
+        # Ensure configuration file directory exists
         if [ -f "$STORAGE_FILE" ]; then
-            log_info "发现已有配置文件: $STORAGE_FILE"
+            log_info "Found existing configuration file: $STORAGE_FILE"
             
-            # 备份现有配置（以防万一）
+            # Backup existing configuration (just in case)
             backup_config
         else
-            log_warn "未找到配置文件，这是正常的，脚本将跳过ID修改"
+            log_warn "Configuration file not found, this is normal, the script will skip ID modification"
         fi
     fi
     
     echo
-    log_info "配置处理完成"
+    log_info "Configuration processing completed"
 }
 
-# 清理 Cursor 之前的修改
+# Clean Cursor before modification
 clean_cursor_app() {
-    log_info "尝试清理 Cursor 之前的修改..."
+    log_info "Attempting to clean Cursor before modification..."
     
-    # 如果存在备份，直接恢复备份
+    # If backup exists, directly restore backup
     local latest_backup=""
     
-    # 查找最新的备份
+    # Find latest backup
     latest_backup=$(find /tmp -name "Cursor.app.backup_*" -type d -print 2>/dev/null | sort -r | head -1)
     
     if [ -n "$latest_backup" ] && [ -d "$latest_backup" ]; then
-        log_info "找到现有备份: $latest_backup"
-        log_info "正在恢复原始版本..."
+        log_info "Found existing backup: $latest_backup"
+        log_info "Restoring original version..."
         
-        # 停止 Cursor 进程
+        # Stop Cursor process
         check_and_kill_cursor
         
-        # 恢复备份
+        # Restore backup
         sudo rm -rf "$CURSOR_APP_PATH"
         sudo cp -R "$latest_backup" "$CURSOR_APP_PATH"
         sudo chown -R "$CURRENT_USER:staff" "$CURSOR_APP_PATH"
         sudo chmod -R 755 "$CURSOR_APP_PATH"
         
-        log_info "已恢复原始版本"
+        log_info "Original version restored"
         return 0
     else
-        log_warn "未找到现有备份，尝试重新安装 Cursor..."
-        echo "您可以从 https://cursor.sh 下载并重新安装 Cursor"
-        echo "或者继续执行此脚本，将尝试修复现有安装"
+        log_warn "No existing backup found, trying to reinstall Cursor..."
+        echo "You can download and reinstall Cursor from https://cursor.sh"
+        echo "Or continue executing this script, the script will try to repair existing installation"
         
-        # 可以在这里添加重新下载和安装的逻辑
+        # You can add logic here to download and reinstall
         return 1
     fi
 }
 
-# 修改 Cursor 主程序文件（安全模式）
+# Modify Cursor main program file (safe mode)
 modify_cursor_app_files() {
-    log_info "正在安全修改 Cursor 主程序文件..."
-    log_info "详细日志将记录到: $LOG_FILE"
+    log_info "Modifying Cursor main program file in safe mode..."
+    log_info "Detailed log will be recorded to: $LOG_FILE"
     
-    # 先清理之前的修改
+    # First clean previous modifications
     clean_cursor_app
     
-    # 验证应用是否存在
+    # Verify application existence
     if [ ! -d "$CURSOR_APP_PATH" ]; then
-        log_error "未找到 Cursor.app，请确认安装路径: $CURSOR_APP_PATH"
+        log_error "Cursor.app not found, please confirm installation path: $CURSOR_APP_PATH"
         return 1
     fi
 
-    # 定义目标文件 - 将extensionHostProcess.js放在最前面优先处理
+    # Define target files - Place extensionHostProcess.js at the front to prioritize processing
     local target_files=(
         "${CURSOR_APP_PATH}/Contents/Resources/app/out/vs/workbench/api/node/extensionHostProcess.js"
         "${CURSOR_APP_PATH}/Contents/Resources/app/out/main.js"
         "${CURSOR_APP_PATH}/Contents/Resources/app/out/vs/code/node/cliProcessMain.js"
     )
     
-    # 检查文件是否存在并且是否已修改
+    # Check if files exist and whether they have been modified
     local need_modification=false
     local missing_files=false
     
-    log_debug "检查目标文件..."
+    log_debug "Checking target files..."
     for file in "${target_files[@]}"; do
         if [ ! -f "$file" ]; then
-            log_warn "文件不存在: ${file/$CURSOR_APP_PATH\//}"
-            echo "[FILE_CHECK] 文件不存在: $file" >> "$LOG_FILE"
+            log_warn "File does not exist: ${file/$CURSOR_APP_PATH/}"
+            echo "[FILE_CHECK] File does not exist: $file" >> "$LOG_FILE"
             missing_files=true
             continue
         fi
         
-        echo "[FILE_CHECK] 文件存在: $file ($(wc -c < "$file") 字节)" >> "$LOG_FILE"
+        echo "[FILE_CHECK] File exists: $file ($(wc -c < "$file") bytes)" >> "$LOG_FILE"
         
         if ! grep -q "return crypto.randomUUID()" "$file" 2>/dev/null; then
-            log_info "文件需要修改: ${file/$CURSOR_APP_PATH\//}"
-            grep -n "IOPlatformUUID" "$file" | head -3 >> "$LOG_FILE" || echo "[FILE_CHECK] 未找到 IOPlatformUUID" >> "$LOG_FILE"
+            log_info "File needs modification: ${file/$CURSOR_APP_PATH/}"
+            grep -n "IOPlatformUUID" "$file" | head -3 >> "$LOG_FILE" || echo "[FILE_CHECK] IOPlatformUUID not found" >> "$LOG_FILE"
             need_modification=true
             break
         else
-            log_info "文件已修改: ${file/$CURSOR_APP_PATH\//}"
+            log_info "File already modified: ${file/$CURSOR_APP_PATH/}"
         fi
     done
     
-    # 如果所有文件都已修改或不存在，则退出
+    # If all files are modified or do not exist, exit
     if [ "$missing_files" = true ]; then
-        log_error "部分目标文件不存在，请确认 Cursor 安装是否完整"
+        log_error "Some target files do not exist, please confirm Cursor installation is complete"
         return 1
     fi
     
     if [ "$need_modification" = false ]; then
-        log_info "所有目标文件已经被修改过，无需重复操作"
+        log_info "All target files have been modified, no need to repeat operation"
         return 0
     fi
 
-    # 创建临时工作目录
+    # Create temporary working directory
     local timestamp=$(date +%Y%m%d_%H%M%S)
     local temp_dir="/tmp/cursor_reset_${timestamp}"
     local temp_app="${temp_dir}/Cursor.app"
     local backup_app="/tmp/Cursor.app.backup_${timestamp}"
     
-    log_debug "创建临时目录: $temp_dir"
-    echo "[TEMP_DIR] 创建临时目录: $temp_dir" >> "$LOG_FILE"
+    log_debug "Creating temporary directory: $temp_dir"
+    echo "[TEMP_DIR] Creating temporary directory: $temp_dir" >> "$LOG_FILE"
     
-    # 清理可能存在的旧临时目录
+    # Clean up possible old temporary directory
     if [ -d "$temp_dir" ]; then
-        log_info "清理已存在的临时目录..."
+        log_info "Cleaning up existing temporary directory..."
         rm -rf "$temp_dir"
     fi
     
-    # 创建新的临时目录
+    # Create new temporary directory
     mkdir -p "$temp_dir" || {
-        log_error "无法创建临时目录: $temp_dir"
-        echo "[ERROR] 无法创建临时目录: $temp_dir" >> "$LOG_FILE"
+        log_error "Unable to create temporary directory: $temp_dir"
+        echo "[ERROR] Unable to create temporary directory: $temp_dir" >> "$LOG_FILE"
         return 1
     }
 
-    # 备份原应用
-    log_info "备份原应用..."
-    echo "[BACKUP] 开始备份: $CURSOR_APP_PATH -> $backup_app" >> "$LOG_FILE"
+    # Backup original application
+    log_info "Backing up original application..."
+    echo "[BACKUP] Starting backup: $CURSOR_APP_PATH -> $backup_app" >> "$LOG_FILE"
     
     cp -R "$CURSOR_APP_PATH" "$backup_app" || {
-        log_error "无法创建应用备份"
-        echo "[ERROR] 备份失败: $CURSOR_APP_PATH -> $backup_app" >> "$LOG_FILE"
+        log_error "Unable to create application backup"
+        echo "[ERROR] Backup failed: $CURSOR_APP_PATH -> $backup_app" >> "$LOG_FILE"
         rm -rf "$temp_dir"
         return 1
     }
     
-    echo "[BACKUP] 备份完成" >> "$LOG_FILE"
+    echo "[BACKUP] Backup completed" >> "$LOG_FILE"
 
-    # 复制应用到临时目录
-    log_info "创建临时工作副本..."
-    echo "[COPY] 开始复制: $CURSOR_APP_PATH -> $temp_dir" >> "$LOG_FILE"
+    # Copy application to temporary directory
+    log_info "Creating temporary working copy..."
+    echo "[COPY] Starting copy: $CURSOR_APP_PATH -> $temp_dir" >> "$LOG_FILE"
     
     cp -R "$CURSOR_APP_PATH" "$temp_dir" || {
-        log_error "无法复制应用到临时目录"
-        echo "[ERROR] 复制失败: $CURSOR_APP_PATH -> $temp_dir" >> "$LOG_FILE"
+        log_error "Unable to copy application to temporary directory"
+        echo "[ERROR] Copy failed: $CURSOR_APP_PATH -> $temp_dir" >> "$LOG_FILE"
         rm -rf "$temp_dir" "$backup_app"
         return 1
     }
     
-    echo "[COPY] 复制完成" >> "$LOG_FILE"
+    echo "[COPY] Copy completed" >> "$LOG_FILE"
 
-    # 确保临时目录的权限正确
+    # Ensure temporary directory permissions are correct
     chown -R "$CURRENT_USER:staff" "$temp_dir"
     chmod -R 755 "$temp_dir"
 
-    # 移除签名（增强兼容性）
-    log_info "移除应用签名..."
-    echo "[CODESIGN] 移除签名: $temp_app" >> "$LOG_FILE"
+    # Remove signature (Enhance compatibility)
+    log_info "Removing application signature..."
+    echo "[CODESIGN] Removing signature: $temp_app" >> "$LOG_FILE"
     
     codesign --remove-signature "$temp_app" 2>> "$LOG_FILE" || {
-        log_warn "移除应用签名失败"
-        echo "[WARN] 移除签名失败: $temp_app" >> "$LOG_FILE"
+        log_warn "Removing application signature failed"
+        echo "[WARN] Removing signature failed: $temp_app" >> "$LOG_FILE"
     }
 
-    # 移除所有相关组件的签名
+    # Remove signature from all related components
     local components=(
         "$temp_app/Contents/Frameworks/Cursor Helper.app"
         "$temp_app/Contents/Frameworks/Cursor Helper (GPU).app"
@@ -446,14 +446,14 @@ modify_cursor_app_files() {
 
     for component in "${components[@]}"; do
         if [ -e "$component" ]; then
-            log_info "正在移除签名: $component"
+            log_info "Removing signature: $component"
             codesign --remove-signature "$component" || {
-                log_warn "移除组件签名失败: $component"
+                log_warn "Removing component signature failed: $component"
             }
         fi
     done
     
-    # 修改目标文件 - 优先处理js文件
+    # Modify target files - Prioritize js files
     local modified_count=0
     local files=(
         "${temp_app}/Contents/Resources/app/out/vs/workbench/api/node/extensionHostProcess.js"
@@ -463,118 +463,117 @@ modify_cursor_app_files() {
     
     for file in "${files[@]}"; do
         if [ ! -f "$file" ]; then
-            log_warn "文件不存在: ${file/$temp_dir\//}"
+            log_warn "File does not exist: ${file/$temp_dir/}"
             continue
         fi
         
-        log_debug "处理文件: ${file/$temp_dir\//}"
-        echo "[PROCESS] 开始处理文件: $file" >> "$LOG_FILE"
-        echo "[PROCESS] 文件大小: $(wc -c < "$file") 字节" >> "$LOG_FILE"
+        log_debug "Processing file: ${file/$temp_dir/}"
+        echo "[PROCESS] Starting file processing: $file" >> "$LOG_FILE"
+        echo "[PROCESS] File size: $(wc -c < "$file") bytes" >> "$LOG_FILE"
         
-        # 输出文件部分内容到日志
-        echo "[FILE_CONTENT] 文件头部 100 行:" >> "$LOG_FILE"
+        # Output file part content to log
+        echo "[FILE_CONTENT] File top 100 lines:" >> "$LOG_FILE"
         head -100 "$file" 2>/dev/null | grep -v "^$" | head -50 >> "$LOG_FILE"
         echo "[FILE_CONTENT] ..." >> "$LOG_FILE"
         
-        # 创建文件备份
+        # Create file backup
         cp "$file" "${file}.bak" || {
-            log_error "无法创建文件备份: ${file/$temp_dir\//}"
-            echo "[ERROR] 无法创建文件备份: $file" >> "$LOG_FILE"
+            log_error "Unable to create file backup: ${file/$temp_dir/}"
+            echo "[ERROR] Unable to create file backup: $file" >> "$LOG_FILE"
             continue
         }
 
-        # 使用 sed 替换而不是字符串操作
+        # Use sed instead of string operation
         if [[ "$file" == *"extensionHostProcess.js"* ]]; then
-            log_debug "处理 extensionHostProcess.js 文件..."
-            echo "[PROCESS_DETAIL] 开始处理 extensionHostProcess.js 文件" >> "$LOG_FILE"
+            log_debug "Processing extensionHostProcess.js file..."
+            echo "[PROCESS_DETAIL] Starting processing extensionHostProcess.js file" >> "$LOG_FILE"
             
-            # 检查是否包含目标代码
+            # Check if target code exists
             if grep -q 'i.header.set("x-cursor-checksum' "$file"; then
-                log_debug "找到 x-cursor-checksum 设置代码"
-                echo "[FOUND] 找到 x-cursor-checksum 设置代码" >> "$LOG_FILE"
+                log_debug "Found x-cursor-checksum setting code"
+                echo "[FOUND] Found x-cursor-checksum setting code" >> "$LOG_FILE"
                 
-                # 记录匹配的行到日志
+                # Record matched line to log
                 grep -n 'i.header.set("x-cursor-checksum' "$file" >> "$LOG_FILE"
                 
-                # 执行特定的替换
+                # Execute specific replace
                 if sed -i.tmp 's/i\.header\.set("x-cursor-checksum",e===void 0?`${p}${t}`:`${p}${t}\/${e}`)/i.header.set("x-cursor-checksum",e===void 0?`${p}${t}`:`${p}${t}\/${p}`)/' "$file"; then
-                    log_info "成功修改 x-cursor-checksum 设置代码"
-                    echo "[SUCCESS] 成功完成 x-cursor-checksum 设置代码替换" >> "$LOG_FILE"
-                    # 记录修改后的行
+                    log_info "Successfully modified x-cursor-checksum setting code"
+                    echo "[SUCCESS] Successfully completed x-cursor-checksum setting code replace" >> "$LOG_FILE"
+                    # Record modified line
                     grep -n 'i.header.set("x-cursor-checksum' "$file" >> "$LOG_FILE"
                     ((modified_count++))
-                    log_info "成功修改文件: ${file/$temp_dir\//}"
+                    log_info "Successfully modified file: ${file/$temp_dir/}"
                 else
-                    log_error "修改 x-cursor-checksum 设置代码失败"
-                    echo "[ERROR] 替换 x-cursor-checksum 设置代码失败" >> "$LOG_FILE"
+                    log_error "Failed to modify x-cursor-checksum setting code"
                     cp "${file}.bak" "$file"
                 fi
             else
-                log_warn "未找到 x-cursor-checksum 设置代码"
-                echo "[FILE_CHECK] 未找到 x-cursor-checksum 设置代码" >> "$LOG_FILE"
+                log_warn "x-cursor-checksum setting code not found"
+                echo "[FILE_CHECK] x-cursor-checksum setting code not found" >> "$LOG_FILE"
                 
-                # 记录文件部分内容到日志以便排查
-                echo "[FILE_CONTENT] 文件中包含 'header.set' 的行:" >> "$LOG_FILE"
+                # Record file part content to log for troubleshooting
+                echo "[FILE_CONTENT] Files containing 'header.set' lines:" >> "$LOG_FILE"
                 grep -n "header.set" "$file" | head -20 >> "$LOG_FILE"
                 
-                echo "[FILE_CONTENT] 文件中包含 'checksum' 的行:" >> "$LOG_FILE"
+                echo "[FILE_CONTENT] Files containing 'checksum' lines:" >> "$LOG_FILE"
                 grep -n "checksum" "$file" | head -20 >> "$LOG_FILE"
             fi
             
-            echo "[PROCESS_DETAIL] 完成处理 extensionHostProcess.js 文件" >> "$LOG_FILE"
+            echo "[PROCESS_DETAIL] Completed processing extensionHostProcess.js file" >> "$LOG_FILE"
         elif grep -q "IOPlatformUUID" "$file"; then
-            log_debug "找到 IOPlatformUUID 关键字"
-            echo "[FOUND] 找到 IOPlatformUUID 关键字" >> "$LOG_FILE"
+            log_debug "Found IOPlatformUUID keyword"
+            echo "[FOUND] Found IOPlatformUUID keyword" >> "$LOG_FILE"
             grep -n "IOPlatformUUID" "$file" | head -5 >> "$LOG_FILE"
             
-            # 定位 IOPlatformUUID 相关函数
+            # Locate IOPlatformUUID related functions
             if grep -q "function a\$" "$file"; then
-                # 检查是否已经修改过
+                # Check if already modified
                 if grep -q "return crypto.randomUUID()" "$file"; then
-                    log_info "文件已经包含 randomUUID 调用，跳过修改"
+                    log_info "File already contains randomUUID call, skipping modification"
                     ((modified_count++))
                     continue
                 fi
                 
-                # 针对 main.js 中发现的代码结构进行修改
+                # Modify for code structure found in main.js
                 if sed -i.tmp 's/function a\$(t){switch/function a\$(t){return crypto.randomUUID(); switch/' "$file"; then
-                    log_debug "成功注入 randomUUID 调用到 a\$ 函数"
+                    log_debug "Successfully injected randomUUID call to a\$ function"
                     ((modified_count++))
-                    log_info "成功修改文件: ${file/$temp_dir\//}"
+                    log_info "Successfully modified file: ${file/$temp_dir/}"
                 else
-                    log_error "修改 a\$ 函数失败"
+                    log_error "Failed to modify a\$ function"
                     cp "${file}.bak" "$file"
                 fi
             elif grep -q "async function v5" "$file"; then
-                # 检查是否已经修改过
+                # Check if already modified
                 if grep -q "return crypto.randomUUID()" "$file"; then
-                    log_info "文件已经包含 randomUUID 调用，跳过修改"
+                    log_info "File already contains randomUUID call, skipping modification"
                     ((modified_count++))
                     continue
                 fi
                 
-                # 替代方法 - 修改 v5 函数
+                # Alternative method - Modify v5 function
                 if sed -i.tmp 's/async function v5(t){let e=/async function v5(t){return crypto.randomUUID(); let e=/' "$file"; then
-                    log_debug "成功注入 randomUUID 调用到 v5 函数"
+                    log_debug "Successfully injected randomUUID call to v5 function"
                     ((modified_count++))
-                    log_info "成功修改文件: ${file/$temp_dir\//}"
+                    log_info "Successfully modified file: ${file/$temp_dir/}"
                 else
-                    log_error "修改 v5 函数失败"
+                    log_error "Failed to modify v5 function"
                     cp "${file}.bak" "$file"
                 fi
             else
-                # 检查是否已经注入了自定义代码
-                if grep -q "// Cursor ID 修改工具注入" "$file"; then
-                    log_info "文件已经包含自定义注入代码，跳过修改"
+                # Check if already injected custom code
+                if grep -q "// Cursor ID Modification Tool Injection" "$file"; then
+                    log_info "File already contains custom injection code, skipping modification"
                     ((modified_count++))
                     continue
                 fi
                 
-                # 使用更通用的注入方法
-                log_warn "未找到具体函数，尝试使用通用修改方法"
+                # Use more generic injection method
+                log_warn "No specific function found, trying generic modification method"
                 inject_code="
-// Cursor ID 修改工具注入 - $(date +%Y%m%d%H%M%S)
-// 随机设备ID生成器注入 - $(date +%s)
+// Cursor ID Modification Tool Injection - $(date +%Y%m%d%H%M%S)
+// Random deviceID generator injection - $(date +%s)
 const randomDeviceId_$(date +%s) = () => {
     try {
         return require('crypto').randomUUID();
@@ -586,55 +585,55 @@ const randomDeviceId_$(date +%s) = () => {
     }
 };
 "
-                # 将代码注入到文件开头
+                # Inject code to file start
                 echo "$inject_code" > "${file}.new"
                 cat "$file" >> "${file}.new"
                 mv "${file}.new" "$file"
                 
-                # 替换调用点
+                # Replace call points
                 sed -i.tmp 's/await v5(!1)/randomDeviceId_'"$(date +%s)"'()/g' "$file"
                 sed -i.tmp 's/a\$(t)/randomDeviceId_'"$(date +%s)"'()/g' "$file"
                 
-                log_debug "完成通用修改"
+                log_debug "Completed generic modification"
                 ((modified_count++))
-                log_info "使用通用方法成功修改文件: ${file/$temp_dir\//}"
+                log_info "Used generic method to successfully modify file: ${file/$temp_dir/}"
             fi
         else
-            # 未找到 IOPlatformUUID，可能是文件结构变化
-            log_warn "未找到 IOPlatformUUID，尝试替代方法"
+            # No IOPlatformUUID found, possibly file structure change
+            log_warn "No IOPlatformUUID found, trying alternative method"
             
-            # 检查是否已经注入或修改过
-            if grep -q "return crypto.randomUUID()" "$file" || grep -q "// Cursor ID 修改工具注入" "$file"; then
-                log_info "文件已经被修改过，跳过修改"
+            # Check if already injected or modified
+            if grep -q "return crypto.randomUUID()" "$file" || grep -q "// Cursor ID Modification Tool Injection" "$file"; then
+                log_info "File already modified, skipping modification"
                 ((modified_count++))
                 continue
             fi
             
-            # 尝试找其他关键函数如 getMachineId 或 getDeviceId
+            # Try find other key functions like getMachineId or getDeviceId
             if grep -q "function t\$()" "$file" || grep -q "async function y5" "$file"; then
-                log_debug "找到设备ID相关函数"
+                log_debug "Found deviceID related functions"
                 
-                # 修改 MAC 地址获取函数
+                # Modify MAC address get function
                 if grep -q "function t\$()" "$file"; then
                     sed -i.tmp 's/function t\$(){/function t\$(){return "00:00:00:00:00:00";/' "$file"
-                    log_debug "修改 MAC 地址获取函数成功"
+                    log_debug "Modified MAC address get function successfully"
                 fi
                 
-                # 修改设备ID获取函数
+                # Modify deviceID get function
                 if grep -q "async function y5" "$file"; then
                     sed -i.tmp 's/async function y5(t){/async function y5(t){return crypto.randomUUID();/' "$file"
-                    log_debug "修改设备ID获取函数成功"
+                    log_debug "Modified deviceID get function successfully"
                 fi
                 
                 ((modified_count++))
-                log_info "使用替代方法成功修改文件: ${file/$temp_dir\//}"
+                log_info "Used alternative method to successfully modify file: ${file/$temp_dir/}"
             else
-                # 最后尝试的通用方法 - 在文件顶部插入重写函数定义
-                log_warn "未找到任何已知函数，使用最通用的方法"
+                # Last try generic method - Insert rewrite function definition at file top
+                log_warn "No known function found, using most generic method"
                 
                 inject_universal_code="
-// Cursor ID 修改工具注入 - $(date +%Y%m%d%H%M%S)
-// 全局拦截设备标识符 - $(date +%s)
+// Cursor ID Modification Tool Injection - $(date +%Y%m%d%H%M%S)
+// Global intercept device identifier - $(date +%s)
 const originalRequire_$(date +%s) = require;
 require = function(module) {
     const result = originalRequire_$(date +%s)(module);
@@ -647,12 +646,12 @@ require = function(module) {
     return result;
 };
 
-// 覆盖所有可能的系统ID获取函数
+// Override all possible systemID get functions
 global.getMachineId = function() { return '${machine_id}'; };
 global.getDeviceId = function() { return '${device_id}'; };
 global.macMachineId = '${mac_machine_id}';
 "
-                # 将代码注入到文件开头
+                # Inject code to file start
                 local new_uuid=$(uuidgen | tr '[:upper:]' '[:lower:]')
                 local machine_id="auth0|user_$(openssl rand -hex 16)"
                 local device_id=$(uuidgen | tr '[:upper:]' '[:lower:]')
@@ -667,49 +666,49 @@ global.macMachineId = '${mac_machine_id}';
                 cat "$file" >> "${file}.new"
                 mv "${file}.new" "$file"
                 
-                log_debug "完成通用覆盖"
+                log_debug "Completed generic override"
                 ((modified_count++))
-                log_info "使用最通用方法成功修改文件: ${file/$temp_dir\//}"
+                log_info "Used most generic method to successfully modify file: ${file/$temp_dir/}"
             fi
         fi
         
-        # 添加在关键操作后记录日志
-        echo "[MODIFIED] 文件修改后内容:" >> "$LOG_FILE"
+        # Add logging after key operations
+        echo "[MODIFIED] File modified content:" >> "$LOG_FILE"
         grep -n "return crypto.randomUUID()" "$file" | head -3 >> "$LOG_FILE"
         
-        # 清理临时文件
+        # Clean up temporary files
         rm -f "${file}.tmp" "${file}.bak"
-        echo "[PROCESS] 文件处理完成: $file" >> "$LOG_FILE"
+        echo "[PROCESS] File processing completed: $file" >> "$LOG_FILE"
     done
     
     if [ "$modified_count" -eq 0 ]; then
-        log_error "未能成功修改任何文件"
+        log_error "No files successfully modified"
         rm -rf "$temp_dir"
         return 1
     fi
     
-    # 重新签名应用（增加重试机制）
+    # Re-sign application (Increase retry mechanism)
     local max_retry=3
     local retry_count=0
     local sign_success=false
     
     while [ $retry_count -lt $max_retry ]; do
         ((retry_count++))
-        log_info "尝试签名 (第 $retry_count 次)..."
+        log_info "Signing attempt (Attempt $retry_count)..."
         
-        # 使用更详细的签名参数
+        # Use more detailed signing parameters
         if codesign --sign - --force --deep --preserve-metadata=entitlements,identifier,flags "$temp_app" 2>&1 | tee /tmp/codesign.log; then
-            # 验证签名
+            # Verify signature
             if codesign --verify -vvvv "$temp_app" 2>/dev/null; then
                 sign_success=true
-                log_info "应用签名验证通过"
+                log_info "Application signature verification passed"
                 break
             else
-                log_warn "签名验证失败，错误日志："
+                log_warn "Signature verification failed, error log:"
                 cat /tmp/codesign.log
             fi
         else
-            log_warn "签名失败，错误日志："
+            log_warn "Signing failed, error log:"
             cat /tmp/codesign.log
         fi
         
@@ -717,47 +716,47 @@ global.macMachineId = '${mac_machine_id}';
     done
 
     if ! $sign_success; then
-        log_error "经过 $max_retry 次尝试仍无法完成签名"
-        log_error "请手动执行以下命令完成签名："
+        log_error "Unable to complete signing after $max_retry attempts"
+        log_error "Please manually execute the following command to complete signing:"
         echo -e "${BLUE}sudo codesign --sign - --force --deep '${temp_app}'${NC}"
-        echo -e "${YELLOW}操作完成后，请手动将应用复制到原路径：${NC}"
+        echo -e "${YELLOW}After operation, please manually copy application to original path:${NC}"
         echo -e "${BLUE}sudo cp -R '${temp_app}' '/Applications/'${NC}"
-        log_info "临时文件保留在：${temp_dir}"
+        log_info "Temporary file retained in: ${temp_dir}"
         return 1
     fi
 
-    # 替换原应用
-    log_info "安装修改版应用..."
+    # Replace original application
+    log_info "Installing modified application..."
     if ! sudo rm -rf "$CURSOR_APP_PATH" || ! sudo cp -R "$temp_app" "/Applications/"; then
-        log_error "应用替换失败，正在恢复..."
+        log_error "Application replacement failed, restoring..."
         sudo rm -rf "$CURSOR_APP_PATH"
         sudo cp -R "$backup_app" "$CURSOR_APP_PATH"
         rm -rf "$temp_dir" "$backup_app"
         return 1
     fi
     
-    # 清理临时文件
+    # Clean up temporary files
     rm -rf "$temp_dir" "$backup_app"
     
-    # 设置权限
+    # Set permissions
     sudo chown -R "$CURRENT_USER:staff" "$CURSOR_APP_PATH"
     sudo chmod -R 755 "$CURSOR_APP_PATH"
     
-    log_info "Cursor 主程序文件修改完成！原版备份在: ${backup_app/$HOME/\~}"
+    log_info "Cursor main program file modification completed! Original backup in: ${backup_app/$HOME/\~}"
     return 0
 }
 
-# 显示文件树结构
+# Display file tree structure
 show_file_tree() {
     local base_dir=$(dirname "$STORAGE_FILE")
     echo
-    log_info "文件结构:"
+    log_info "File structure:"
     echo -e "${BLUE}$base_dir${NC}"
     echo "├── globalStorage"
-    echo "│   ├── storage.json (已修改)"
+    echo "│   ├── storage.json (Modified)"
     echo "│   └── backups"
     
-    # 列出备份文件
+    # List backup files
     if [ -d "$BACKUP_DIR" ]; then
         local backup_files=("$BACKUP_DIR"/*)
         if [ ${#backup_files[@]} -gt 0 ]; then
@@ -767,173 +766,173 @@ show_file_tree() {
                 fi
             done
         else
-            echo "│       └── (空)"
+            echo "│       └── (Empty)"
         fi
     fi
     echo
 }
 
-# 显示公众号信息
+# Display public account information
 show_follow_info() {
     echo
     echo -e "${GREEN}================================${NC}"
-    echo -e "${YELLOW}  脚本由Neo优化，Wechat：Neo20250310 ${NC}"
+    echo -e "${YELLOW}   Script by Neo Optimized, Wechat：Neo20250310 ${NC}"
     echo -e "${GREEN}================================${NC}"
     echo
 }
 
-# 禁用自动更新
+# Disable automatic update
 disable_auto_update() {
     local updater_path="$HOME/Library/Application Support/Caches/cursor-updater"
     local app_update_yml="/Applications/Cursor.app/Contents/Resources/app-update.yml"
     
     echo
-    log_info "正在禁用 Cursor 自动更新..."
+    log_info "Disabling Cursor automatic update..."
     
-    # 备份并清空 app-update.yml
+    # Backup and empty app-update.yml
     if [ -f "$app_update_yml" ]; then
-        log_info "备份并修改 app-update.yml..."
+        log_info "Backing up and modifying app-update.yml..."
         if ! sudo cp "$app_update_yml" "${app_update_yml}.bak" 2>/dev/null; then
-            log_warn "备份 app-update.yml 失败，继续执行..."
+            log_warn "Failed to backup app-update.yml, continuing execution..."
         fi
         
         if sudo bash -c "echo '' > \"$app_update_yml\"" && \
            sudo chmod 444 "$app_update_yml"; then
-            log_info "成功禁用 app-update.yml"
+            log_info "Successfully disabled app-update.yml"
         else
-            log_error "修改 app-update.yml 失败，请手动执行以下命令："
+            log_error "Failed to modify app-update.yml, please manually execute the following commands:"
             echo -e "${BLUE}sudo cp \"$app_update_yml\" \"${app_update_yml}.bak\"${NC}"
             echo -e "${BLUE}sudo bash -c 'echo \"\" > \"$app_update_yml\"'${NC}"
             echo -e "${BLUE}sudo chmod 444 \"$app_update_yml\"${NC}"
         fi
     else
-        log_warn "未找到 app-update.yml 文件"
+        log_warn "app-update.yml file not found"
     fi
     
-    # 同时也处理 cursor-updater
-    log_info "处理 cursor-updater..."
+    # Also handle cursor-updater
+    log_info "Handling cursor-updater..."
     if sudo rm -rf "$updater_path" && \
        sudo touch "$updater_path" && \
        sudo chmod 444 "$updater_path"; then
-        log_info "成功禁用 cursor-updater"
+        log_info "Successfully disabled cursor-updater"
     else
-        log_error "禁用 cursor-updater 失败，请手动执行以下命令："
+        log_error "Failed to disable cursor-updater, please manually execute the following commands:"
         echo -e "${BLUE}sudo rm -rf \"$updater_path\" && sudo touch \"$updater_path\" && sudo chmod 444 \"$updater_path\"${NC}"
     fi
     
     echo
-    log_info "验证方法："
-    echo "1. 运行命令：ls -l \"$updater_path\""
-    echo "   确认文件权限显示为：r--r--r--"
-    echo "2. 运行命令：ls -l \"$app_update_yml\""
-    echo "   确认文件权限显示为：r--r--r--"
+    log_info "Verification method:"
+    echo "1. Run command: ls -l \"$updater_path\""
+    echo "    Confirm file permissions display as: r--r--r--"
+    echo "2. Run command: ls -l \"$app_update_yml\""
+    echo "    Confirm file permissions display as: r--r--r--"
     echo
-    log_info "完成后请重启 Cursor"
+    log_info "Completed, please restart Cursor"
 }
 
-# 新增恢复功能选项
+# New restore feature option
 restore_feature() {
-    # 检查备份目录是否存在
+    # Check if backup directory exists
     if [ ! -d "$BACKUP_DIR" ]; then
-        log_warn "备份目录不存在"
+        log_warn "Backup directory does not exist"
         return 1
     fi
 
-    # 使用 find 命令获取备份文件列表并存储到数组
+    # Use find command to get backup file list and store to array
     backup_files=()
     while IFS= read -r file; do
         [ -f "$file" ] && backup_files+=("$file")
     done < <(find "$BACKUP_DIR" -name "*.backup_*" -type f 2>/dev/null | sort)
     
-    # 检查是否找到备份文件
+    # Check if backup files found
     if [ ${#backup_files[@]} -eq 0 ]; then
-        log_warn "未找到任何备份文件"
+        log_warn "No backup files found"
         return 1
     fi
     
     echo
-    log_info "可用的备份文件："
+    log_info "Available backup files:"
     
-    # 构建菜单选项字符串
-    menu_options="退出 - 不恢复任何文件"
+    # Build menu option string
+    menu_options="Exit - Do not restore any file"
     for i in "${!backup_files[@]}"; do
         menu_options="$menu_options|$(basename "${backup_files[$i]}")"
     done
     
-    # 使用菜单选择函数
-    select_menu_option "请使用上下箭头选择要恢复的备份文件，按Enter确认:" "$menu_options" 0
+    # Use menu selection function
+    select_menu_option "Please use up and down arrows to select the backup file to restore, press Enter to confirm:" "$menu_options" 0
     choice=$?
     
-    # 处理用户输入
+    # Handle user input
     if [ "$choice" = "0" ]; then
-        log_info "跳过恢复操作"
+        log_info "Skipping restore operation"
         return 0
     fi
     
-    # 获取选择的备份文件 (减1是因为第一个选项是"退出")
+    # Get selected backup file (Subtract 1 because first option is "Exit")
     local selected_backup="${backup_files[$((choice-1))]}"
     
-    # 验证文件存在性和可读性
+    # Verify file existence and readability
     if [ ! -f "$selected_backup" ] || [ ! -r "$selected_backup" ]; then
-        log_error "无法访问选择的备份文件"
+        log_error "Unable to access selected backup file"
         return 1
     fi
     
-    # 尝试恢复配置
+    # Try restore configuration
     if cp "$selected_backup" "$STORAGE_FILE"; then
         chmod 644 "$STORAGE_FILE"
         chown "$CURRENT_USER" "$STORAGE_FILE"
-        log_info "已从备份文件恢复配置: $(basename "$selected_backup")"
+        log_info "Configuration restored from backup file: $(basename "$selected_backup")"
         return 0
     else
-        log_error "恢复配置失败"
+        log_error "Failed to restore configuration"
         return 1
     fi
 }
 
-# 解决"应用已损坏，无法打开"问题
+# Solve "Application is damaged and cannot be opened" problem
 fix_damaged_app() {
-    log_info "正在修复"应用已损坏"问题..."
+    log_info "Solving "Application is damaged" problem..."
     
-    # 检查Cursor应用是否存在
+    # Check if Cursor application exists
     if [ ! -d "$CURSOR_APP_PATH" ]; then
-        log_error "未找到Cursor应用: $CURSOR_APP_PATH"
+        log_error "Cursor application not found: $CURSOR_APP_PATH"
         return 1
     fi
     
-    log_info "尝试移除隔离属性..."
+    log_info "Attempting to remove quarantine attribute..."
     if sudo xattr -rd com.apple.quarantine "$CURSOR_APP_PATH" 2>/dev/null; then
-        log_info "成功移除隔离属性"
+        log_info "Successfully removed quarantine attribute"
     else
-        log_warn "移除隔离属性失败，尝试其他方法..."
+        log_warn "Failed to remove quarantine attribute, trying other method..."
     fi
     
-    log_info "尝试重新签名应用..."
+    log_info "Attempting to re-sign application..."
     if sudo codesign --force --deep --sign - "$CURSOR_APP_PATH" 2>/dev/null; then
-        log_info "应用重新签名成功"
+        log_info "Application re-signing succeeded"
     else
-        log_warn "应用重新签名失败"
+        log_warn "Application re-signing failed"
     fi
     
     echo
-    log_info "修复完成！请尝试重新打开Cursor应用"
+    log_info "Solving completed! Please try to open Cursor application again"
     echo
-    echo -e "${YELLOW}如果仍然无法打开，您可以尝试以下方法：${NC}"
-    echo "1. 在系统偏好设置->安全性与隐私中，点击"仍要打开"按钮"
-    echo "2. 暂时关闭Gatekeeper（不建议）: sudo spctl --master-disable"
-    echo "3. 重新下载安装Cursor应用"
+    echo -e "${YELLOW}If it still cannot be opened, you can try the following methods:${NC}"
+    echo "1. Click "Still Open" button in System Preferences->Security & Privacy"
+    echo "2. Temporarily disable Gatekeeper (Not recommended): sudo spctl --master-disable"
+    echo "3. Re-download and install Cursor application"
     echo
-    echo -e "${BLUE}参考链接: https://sysin.org/blog/macos-if-crashes-when-opening/${NC}"
+    echo -e "${BLUE}Reference link: https://sysin.org/blog/macos-if-crashes-when-opening/${NC}"
     
     return 0
 }
 
-# 新增：通用菜单选择函数
-# 参数: 
-# $1 - 提示信息
-# $2 - 选项数组，格式为 "选项1|选项2|选项3"
-# $3 - 默认选项索引 (从0开始)
-# 返回: 选中的选项索引 (从0开始)
+# New: Generic menu selection function
+# Parameters: 
+# $1 - Prompt information
+# $2 - Option array, format as "Option1|Option2|Option3"
+# $3 - Default option index (from 0)
+# Return: Selected option index (from 0)
 select_menu_option() {
     local prompt="$1"
     IFS='|' read -ra options <<< "$2"
@@ -944,13 +943,13 @@ select_menu_option() {
     local cursor_down='\033[B'
     local enter_key=$'\n'
     
-    # 保存光标位置
+    # Save cursor position
     tput sc
     
-    # 显示提示信息
+    # Display prompt information
     echo -e "$prompt"
     
-    # 第一次显示菜单
+    # First display menu
     for i in "${!options[@]}"; do
         if [ $i -eq $selected_index ]; then
             echo -e " ${GREEN}►${NC} ${options[$i]}"
@@ -959,37 +958,37 @@ select_menu_option() {
         fi
     done
     
-    # 循环处理键盘输入
+    # Loop to handle keyboard input
     while true; do
-        # 读取单个按键
+        # Read single key input
         read -rsn3 key_input
         
-        # 检测按键
+        # Detect key input
         case "$key_input" in
-            # 上箭头键
+            # Up arrow key
             $'\033[A')
                 if [ $selected_index -gt 0 ]; then
                     ((selected_index--))
                 fi
                 ;;
-            # 下箭头键
+            # Down arrow key
             $'\033[B')
                 if [ $selected_index -lt $((${#options[@]}-1)) ]; then
                     ((selected_index++))
                 fi
                 ;;
-            # Enter键
+            # Enter key
             "")
-                echo # 换行
-                log_info "您选择了: ${options[$selected_index]}"
+                echo # New line
+                log_info "You selected: ${options[$selected_index]}"
                 return $selected_index
                 ;;
         esac
         
-        # 恢复光标位置
+        # Restore cursor position
         tput rc
         
-        # 重新显示菜单
+        # Re-display menu
         for i in "${!options[@]}"; do
             if [ $i -eq $selected_index ]; then
                 echo -e " ${GREEN}►${NC} ${options[$i]}"
@@ -1000,28 +999,28 @@ select_menu_option() {
     done
 }
 
-# 主函数
+# Main function
 main() {
     
-    # 初始化日志文件
+    # Initialize log file
     initialize_log
-    log_info "脚本启动..."
+    log_info "Script started..."
     
-    # 记录系统信息
-    log_info "系统信息: $(uname -a)"
-    log_info "当前用户: $CURRENT_USER"
-    log_cmd_output "sw_vers" " 版本信息"
-    log_cmd_output "which codesign" "codesign 路径"
-    log_cmd_output "ls -la \"$CURSOR_APP_PATH\"" "Cursor 应用信息"
+    # Record system information
+    log_info "System information: $(uname -a)"
+    log_info "Current user: $CURRENT_USER"
+    log_cmd_output "sw_vers" " Version information"
+    log_cmd_output "which codesign" "codesign path"
+    log_cmd_output "ls -la \"$CURSOR_APP_PATH\"" "Cursor application information"
     
-    # # 新增环境检查
+    # # New environment check
     # if [[ $(uname) != "" ]]; then
-    #     log_error "本脚本仅支持 Linux 系统"
+    #     log_error "This script only supports Linux system"
     #     exit 1
     # fi
     
     clear
-    # 显示 Logo
+    # Display Logo
     echo -e "
     ██████╗██╗   ██╗██████╗ ███████╗ ██████╗ ██████╗ 
    ██╔════╝██║   ██║██╔══██╗██╔════╝██╔═══██╗██╔══██╗
@@ -1031,120 +1030,120 @@ main() {
     ╚═════╝ ╚═════╝ ╚═╝  ╚═╝╚══════╝ ╚═════╝ ╚═╝  ╚═╝
     "
     echo -e "${BLUE}================================${NC}"
-    echo -e "${GREEN}   Cursor 启动工具          ${NC}"
+    echo -e "${GREEN}   Cursor Startup Tool          ${NC}"
     echo -e "${BLUE}================================${NC}"
     echo
-    echo -e "${YELLOW}[重要提示]${NC} 本工具优先修改js文件，更加安全可靠"
+    echo -e "${YELLOW}[Important Tip]${NC} This tool prioritizes modifying js file, more secure and reliable"
     echo
     
-    # 执行主要功能
+    # Execute main functionality
     check_permissions
     check_and_kill_cursor
     backup_config
     
-    # 询问用户是否需要重置机器码（默认不重置）
+    # Ask user if they want to reset machine code (default no reset)
     generate_new_config
     
-    # 执行主程序文件修改
-    log_info "正在执行主程序文件修改..."
+    # Execute main program file modification
+    log_info "Executing main program file modification..."
     
-    # 使用子shell执行修改，避免错误导致整个脚本退出
+    # Use subshell to execute modification, avoid error causing entire script exit
     (
         if modify_cursor_app_files; then
-            log_info "主程序文件修改成功！"
+            log_info "Main program file modification completed!"
         else
-            log_warn "主程序文件修改失败，但配置文件修改可能已成功"
-            log_warn "如果重启后 Cursor 仍然提示设备被禁用，请重新运行此脚本"
+            log_warn "Main program file modification failed, but configuration file modification may be successful"
+            log_warn "If restarting Cursor still prompts device disabled, please re-run this script"
         fi
     )
     
-    # 恢复错误处理
+    # Restore error handling
     set -e
     
     show_file_tree
     show_follow_info
   
-    # 直接执行禁用自动更新
+    # Directly execute disable automatic update
     disable_auto_update
 
-    log_info "请重启 Cursor 以应用新的配置"
+    log_info "Please restart Cursor to apply new configuration"
 
-    # 显示最后的提示信息
+    # Display final prompt information
     show_follow_info
 
-    # 提供修复选项（移到最后）
+    # Provide repair option (Move to end)
     echo
-    log_warn "Cursor 修复选项"
+    log_warn "Cursor repair option"
     
-    # 使用新的菜单选择函数
-    select_menu_option "请使用上下箭头选择，按Enter确认:" "忽略 - 不执行修复操作|修复模式 - 恢复原始的 Cursor 安装" 0
+    # Use new menu selection function
+    select_menu_option "Please use up and down arrows to select, press Enter to confirm:" "Ignore - Do not execute repair operation|Repair mode - Restore original Cursor installation" 0
     fix_choice=$?
     
-    # 记录日志以便调试
-    echo "[INPUT_DEBUG] 修复选项选择: $fix_choice" >> "$LOG_FILE"
+    # Record log for debugging
+    echo "[INPUT_DEBUG] Repair option selected: $fix_choice" >> "$LOG_FILE"
     
-    # 确保脚本不会因为输入问题而终止
+    # Ensure script will not terminate due to input problem
     set +e
     
-    # 处理用户选择 - 索引1对应"修复模式"选项
+    # Handle user selection - Index 1 corresponds to "Repair mode" option
     if [ "$fix_choice" = "1" ]; then
-        log_info "您选择了修复模式"
-        # 使用子shell执行清理，避免错误导致整个脚本退出
+        log_info "You chose repair mode"
+        # Use subshell to execute cleanup, avoid error causing entire script exit
         (
             if clean_cursor_app; then
-                log_info "Cursor 已恢复到原始状态"
-                log_info "如果您需要应用ID修改，请重新运行此脚本"
+                log_info "Cursor restored to original state"
+                log_info "If you need to apply ID modification, please re-run this script"
             else
-                log_warn "未能找到备份，无法自动恢复"
-                log_warn "建议重新安装 Cursor"
+                log_warn "Unable to find backup, unable to automatically restore"
+                log_warn "Suggest re-installing Cursor"
             fi
         )
     else
-        log_info "已跳过修复操作"
+        log_info "Skipped repair operation"
     fi
     
-    # 恢复错误处理
+    # Restore error handling
     set -e
 
-    # 记录脚本完成信息
-    log_info "脚本执行完成"
-    echo "========== Cursor ID 修改工具日志结束 $(date) ==========" >> "$LOG_FILE"
+    # Record script completion information
+    log_info "Script execution completed"
+    echo "========== Cursor ID Modification Tool Log End $(date) ==========" >> "$LOG_FILE"
     
-    # 显示日志文件位置
+    # Display log file location
     echo
-    log_info "详细日志已保存到: $LOG_FILE"
-    echo "如遇问题请将此日志文件提供给开发者以协助排查"
+    log_info "Detailed log saved to: $LOG_FILE"
+    echo "If you encounter problems, please provide this log file to developer for assistance"
     echo
     
-    # 添加修复"应用已损坏"选项
+    # Add repair "Application is damaged" option
     echo
-    log_warn "应用修复选项"
+    log_warn "Application repair option"
     
-    # 使用新的菜单选择函数
-    select_menu_option "请使用上下箭头选择，按Enter确认:" "忽略 - 不执行修复操作|修复"应用已损坏"问题 - 解决提示应用已损坏无法打开的问题" 0
+    # Use new menu selection function
+    select_menu_option "Please use up and down arrows to select, press Enter to confirm:" "Ignore - Do not execute repair operation|Repair"Application is damaged" problem - Solve the problem of Cursor application cannot be opened" 0
     damaged_choice=$?
     
-    echo "[INPUT_DEBUG] 应用修复选项选择: $damaged_choice" >> "$LOG_FILE"
+    echo "[INPUT_DEBUG] Application repair option selected: $damaged_choice" >> "$LOG_FILE"
     
     set +e
     
-    # 处理用户选择 - 索引1对应"修复应用已损坏"选项
+    # Handle user selection - Index 1 corresponds to "Repair"Application is damaged" problem" option
     if [ "$damaged_choice" = "1" ]; then
-        log_info "您选择了修复"应用已损坏"问题"
+        log_info "You chose to repair "Application is damaged" problem"
         (
             if fix_damaged_app; then
-                log_info "修复"应用已损坏"问题完成"
+                log_info "Repair "Application is damaged" problem completed"
             else
-                log_warn "修复"应用已损坏"问题失败"
+                log_warn "Repair "Application is damaged" problem failed"
             fi
         )
     else
-        log_info "已跳过应用修复操作"
+        log_info "Skipped application repair operation"
     fi
     
     set -e
 }
 
-# 执行主函数
+# Execute main function
 main
 

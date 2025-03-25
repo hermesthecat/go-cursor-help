@@ -2,11 +2,9 @@
 
 <div align="center">
 
-[![Release](https://img.shields.io/github/v/release/yuaotian/go-cursor-help?style=flat-square&logo=github&color=blue)](https://github.com/yuaotian/go-cursor-help/releases/latest)
-[![License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square&logo=bookstack)](https://github.com/yuaotian/go-cursor-help/blob/master/LICENSE)
-[![Stars](https://img.shields.io/github/stars/yuaotian/go-cursor-help?style=flat-square&logo=github)](https://github.com/yuaotian/go-cursor-help/stargazers)
-
-[🌟 English](README.md) | [🌏 中文](README_CN.md) | [🌏 日本語](README_JP.md)
+[![Release](https://img.shields.io/github/v/release/hermesthecat/go-cursor-help?style=flat-square&logo=github&color=blue)](https://github.com/hermesthecat/go-cursor-help/releases/latest)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square&logo=bookstack)](https://github.com/hermesthecat/go-cursor-help/blob/master/LICENSE)
+[![Stars](https://img.shields.io/github/stars/hermesthecat/go-cursor-help?style=flat-square&logo=github)](https://github.com/hermesthecat/go-cursor-help/stargazers)
 
 <img src="https://ai-cursor.com/wp-content/uploads/2024/09/logo-cursor-ai-png.webp" alt="Cursor Logo" width="120"/>
 
@@ -247,19 +245,19 @@ If you see the "High Load" message for Claude 3.7 Sonnet, this indicates Cursor 
 
 ```bash
 # Method two
-curl -fsSL https://aizaozao.com/accelerate.php/https://raw.githubusercontent.com/yuaotian/go-cursor-help/refs/heads/master/scripts/run/cursor_mac_id_modifier.sh -o ./cursor_mac_id_modifier.sh && sudo bash ./cursor_mac_id_modifier.sh && rm ./cursor_mac_id_modifier.sh
+curl -fsSL https://aizaozao.com/accelerate.php/https://raw.githubusercontent.com/hermesthecat/go-cursor-help/refs/heads/master/scripts/run/cursor_mac_id_modifier.sh -o ./cursor_mac_id_modifier.sh && sudo bash ./cursor_mac_id_modifier.sh && rm ./cursor_mac_id_modifier.sh
 ```
 
 **Linux**
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/yuaotian/go-cursor-help/refs/heads/master/scripts/run/cursor_linux_id_modifier.sh | sudo bash 
+curl -fsSL https://raw.githubusercontent.com/hermesthecat/go-cursor-help/refs/heads/master/scripts/run/cursor_linux_id_modifier.sh | sudo bash 
 ```
 
 **Windows**
 
 ```powershell
-irm https://raw.githubusercontent.com/yuaotian/go-cursor-help/refs/heads/master/scripts/run/cursor_win_id_modifier.ps1 | iex
+irm https://raw.githubusercontent.com/hermesthecat/go-cursor-help/refs/heads/master/scripts/run/cursor_win_id_modifier.ps1 | iex
 ```
 
 <div align="center">
@@ -274,19 +272,19 @@ irm https://raw.githubusercontent.com/yuaotian/go-cursor-help/refs/heads/master/
 **macOS**
 
 ```bash
-curl -fsSL https://aizaozao.com/accelerate.php/https://raw.githubusercontent.com/yuaotian/go-cursor-help/refs/heads/master/scripts/run/cursor_mac_id_modifier.sh -o ./cursor_mac_id_modifier.sh && sudo bash ./cursor_mac_id_modifier.sh && rm ./cursor_mac_id_modifier.sh
+curl -fsSL https://aizaozao.com/accelerate.php/https://raw.githubusercontent.com/hermesthecat/go-cursor-help/refs/heads/master/scripts/run/cursor_mac_id_modifier.sh -o ./cursor_mac_id_modifier.sh && sudo bash ./cursor_mac_id_modifier.sh && rm ./cursor_mac_id_modifier.sh
 ```
 
 **Linux**
 
 ```bash
-curl -fsSL https://aizaozao.com/accelerate.php/https://raw.githubusercontent.com/yuaotian/go-cursor-help/refs/heads/master/scripts/run/cursor_linux_id_modifier.sh | sudo bash
+curl -fsSL https://aizaozao.com/accelerate.php/https://raw.githubusercontent.com/hermesthecat/go-cursor-help/refs/heads/master/scripts/run/cursor_linux_id_modifier.sh | sudo bash
 ```
 
 **Windows**
 
 ```powershell
-irm https://aizaozao.com/accelerate.php/https://raw.githubusercontent.com/yuaotian/go-cursor-help/refs/heads/master/scripts/run/cursor_win_id_modifier.ps1 | iex
+irm https://aizaozao.com/accelerate.php/https://raw.githubusercontent.com/hermesthecat/go-cursor-help/refs/heads/master/scripts/run/cursor_win_id_modifier.ps1 | iex
 ```
 
 </details>
@@ -314,7 +312,7 @@ irm https://aizaozao.com/accelerate.php/https://raw.githubusercontent.com/yuaoti
    or type in the opened window: Start-Process pwsh -Verb RunAs
 4. Enter the reset script in the administrator terminal:
 
-irm https://aizaozao.com/accelerate.php/https://raw.githubusercontent.com/yuaotian/go-cursor-help/refs/heads/master/scripts/run/cursor_win_id_modifier.ps1 | iex
+irm https://aizaozao.com/accelerate.php/https://raw.githubusercontent.com/hermesthecat/go-cursor-help/refs/heads/master/scripts/run/cursor_win_id_modifier.ps1 | iex
 ```
 
 ##### Method 3: Using Search
@@ -325,7 +323,7 @@ irm https://aizaozao.com/accelerate.php/https://raw.githubusercontent.com/yuaoti
 
 Enter the reset script in the administrator terminal:
 ```powershell
-irm https://aizaozao.com/accelerate.php/https://raw.githubusercontent.com/yuaotian/go-cursor-help/refs/heads/master/scripts/run/cursor_win_id_modifier.ps1 | iex
+irm https://aizaozao.com/accelerate.php/https://raw.githubusercontent.com/hermesthecat/go-cursor-help/refs/heads/master/scripts/run/cursor_win_id_modifier.ps1 | iex
 ```
 
 ### 🔧 PowerShell Installation Guide 
@@ -367,7 +365,7 @@ That's it! The script will:
 
 ### 📦 Manual Installation
 
-> Download the appropriate file for your system from [releases](https://github.com/yuaotian/go-cursor-help/releases/latest)
+> Download the appropriate file for your system from [releases](https://github.com/hermesthecat/go-cursor-help/releases/latest)
 
 <details>
 <summary>Windows Packages</summary>
@@ -470,63 +468,6 @@ Modifying this registry key may affect:
 </details>
 
 ---
-
-### 📚 Recommended Reading
-
-- [Cursor Issues Collection and Solutions](https://mp.weixin.qq.com/s/pnJrH7Ifx4WZvseeP1fcEA)
-- [AI Universal Development Assistant Prompt Guide](https://mp.weixin.qq.com/s/PRPz-qVkFJSgkuEKkTdzwg)
-
----
-
-##  Support
-
-<div align="center">
-<b>If you find this helpful, consider buying me a spicy gluten snack (Latiao) as appreciation~ 💁☕️</b>
-<table>
-<tr>
-
-<td align="center">
-<b>微信赞赏</b><br>
-<img src="img/wx_zsm2.png" width="500" alt="微信赞赏码"><br>
-<small>要到饭咧？啊咧？啊咧？不给也没事~ 请随意打赏</small>
-</td>
-<td align="center">
-<b>支付宝赞赏</b><br>
-<img src="img/alipay.png" width="500" alt="支付宝赞赏码"><br>
-<small>如果觉得有帮助,来包辣条犒劳一下吧~</small>
-</td>
-<td align="center">
-<b>Alipay</b><br>
-<img src="img/alipay_scan_pay.jpg" width="500" alt="Alipay"><br>
-<em>1 Latiao = 1 AI thought cycle</em>
-</td>
-<td align="center">
-<b>WeChat</b><br>
-<img src="img/qun-8.png" width="500" alt="WeChat"><br>
-<em>二维码7天内(3月29日前)有效，过期请加微信</em>
-</td>
-<!-- <td align="center">
-<b>ETC</b><br>
-<img src="img/etc.png" width="100" alt="ETC Address"><br>
-ETC: 0xa2745f4CD5d32310AC01694ABDB28bA32D125a6b
-</td>
-<td align="center"> -->
-</td>
-</tr>
-</table>
-</div>
-
----
-
-## ⭐ Project Stats
-
-<div align="center">
-
-[![Star History Chart](https://api.star-history.com/svg?repos=yuaotian/go-cursor-help&type=Date)](https://star-history.com/#yuaotian/go-cursor-help&Date)
-
-![Repobeats analytics image](https://repobeats.axiom.co/api/embed/ddaa9df9a94b0029ec3fad399e1c1c4e75755477.svg "Repobeats analytics image")
-
-</div>
 
 ## 📄 License
 

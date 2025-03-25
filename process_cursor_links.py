@@ -39,32 +39,32 @@ def generate_markdown(versions: List[CursorVersion]) -> str:
 
 ## x64
 <details>
-<summary style="font-size:1.2em">📦 Windows x64 安装包</summary>
+<summary style="font-size:1.2em">📦 Windows x64 Installer</summary>
 
-| 版本 | 下载链接 |
-|------|----------|
+| Version | Download Link |
+|---------|---------------|
 """
     
     # Windows x64
     for version in versions:
         links = version.get_download_links()
-        md += f"| {version.version} | [下载]({links['windows']['x64']}) |\n"
+        md += f"| {version.version} | [Download]({links['windows']['x64']}) |\n"
     
     md += """
 </details>
 
 ## ARM64 
 <details>
-<summary style="font-size:1.2em">📱 Windows ARM64 安装包</summary>
+<summary style="font-size:1.2em">📱 Windows ARM64 Installer</summary>
 
-| 版本 | 下载链接 |
-|------|----------|
+| Version | Download Link |
+|---------|---------------|
 """
     
     # Windows ARM64
     for version in versions:
         links = version.get_download_links()
-        md += f"| {version.version} | [下载]({links['windows']['arm64']}) |\n"
+        md += f"| {version.version} | [Download]({links['windows']['arm64']}) |\n"
     
     md += """
 </details>
@@ -73,48 +73,48 @@ def generate_markdown(versions: List[CursorVersion]) -> str:
 
 ## Universal
 <details>
-<summary style="font-size:1.2em">🎯 macOS Universal 安装包</summary>
+<summary style="font-size:1.2em">🎯 macOS Universal Installer</summary>
 
-| 版本 | 下载链接 |
-|------|----------|
+| Version | Download Link |
+|---------|---------------|
 """
     
     # macOS Universal
     for version in versions:
         links = version.get_download_links()
-        md += f"| {version.version} | [下载]({links['mac']['universal']}) |\n"
+        md += f"| {version.version} | [Download]({links['mac']['universal']}) |\n"
     
     md += """
 </details>
 
 ## ARM64
 <details>
-<summary style="font-size:1.2em">💪 macOS ARM64 安装包</summary>
+<summary style="font-size:1.2em">💪 macOS ARM64 Installer</summary>
 
-| 版本 | 下载链接 |
-|------|----------|
+| Version | Download Link |
+|---------|---------------|
 """
     
     # macOS ARM64
     for version in versions:
         links = version.get_download_links()
-        md += f"| {version.version} | [下载]({links['mac']['arm64']}) |\n"
+        md += f"| {version.version} | [Download]({links['mac']['arm64']}) |\n"
     
     md += """
 </details>
 
 ## Intel
 <details>
-<summary style="font-size:1.2em">💻 macOS Intel 安装包</summary>
+<summary style="font-size:1.2em">💻 macOS Intel Installer</summary>
 
-| 版本 | 下载链接 |
-|------|----------|
+| Version | Download Link |
+|---------|---------------|
 """
     
     # macOS Intel
     for version in versions:
         links = version.get_download_links()
-        md += f"| {version.version} | [下载]({links['mac']['x64']}) |\n"
+        md += f"| {version.version} | [Download]({links['mac']['x64']}) |\n"
     
     md += """
 </details>
@@ -125,14 +125,14 @@ def generate_markdown(versions: List[CursorVersion]) -> str:
 <details>
 <summary style="font-size:1.2em">🎮 Linux x64 AppImage</summary>
 
-| 版本 | 下载链接 |
-|------|----------|
+| Version | Download Link |
+|---------|---------------|
 """
     
     # Linux x64
     for version in versions:
         links = version.get_download_links()
-        md += f"| {version.version} | [下载]({links['linux']['x64']}) |\n"
+        md += f"| {version.version} | [Download]({links['linux']['x64']}) |\n"
     
     md += """
 </details>
@@ -186,7 +186,7 @@ a:hover {
     return md
 
 def main():
-    # 示例数据
+    # Sample data
     data = """
 0.45.11,250207y6nbaw5qc
 0.45.10,250205buadkzpea
@@ -337,17 +337,17 @@ def main():
     
     versions = parse_versions(data)
     
-    # 生成 Markdown 文件
+    # Generate Markdown file
     markdown_content = generate_markdown(versions)
-    with open('Cursor历史.md', 'w', encoding='utf-8') as f:
+    with open('CursorHistory.md', 'w', encoding='utf-8') as f:
         f.write(markdown_content)
     
-    # 创建结果数据结构
+    # Create result data structure
     result = {
         "versions": []
     }
     
-    # 处理每个版本
+    # Process each version
     for version in versions:
         version_info = {
             "version": version.version,
@@ -356,11 +356,11 @@ def main():
         }
         result["versions"].append(version_info)
     
-    # 保存为JSON文件
+    # Save as JSON file
     with open('cursor_downloads.json', 'w', encoding='utf-8') as f:
         json.dump(result, f, indent=2, ensure_ascii=False)
     
-    # 同时生成CSV格式的下载链接
+    # Also generate CSV format download links
     with open('cursor_downloads.csv', 'w', newline='', encoding='utf-8') as f:
         writer = csv.writer(f)
         writer.writerow(['Version', 'Platform', 'Architecture', 'Download URL'])

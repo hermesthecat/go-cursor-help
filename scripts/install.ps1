@@ -98,7 +98,7 @@ function Install-CursorModifier {
     
     # Get latest release
     try {
-        $latestRelease = Invoke-RestMethod -Uri "https://api.github.com/repos/yuaotian/go-cursor-help/releases/latest"
+        $latestRelease = Invoke-RestMethod -Uri "https://api.github.com/repos/hermesthecat/go-cursor-help/releases/latest"
         Write-Host "Found latest release: $($latestRelease.tag_name)" -ForegroundColor Cyan
         
         # Look for Windows binary with our architecture

@@ -42,7 +42,7 @@ func (g *Generator) generateRandomHex(length int) (string, error) {
 
 // GenerateMachineID generates a new machine ID with auth0|user_ prefix
 func (g *Generator) GenerateMachineID() (string, error) {
-	randomPart, err := g.generateRandomHex(32) // 生成64字符的十六进制
+	randomPart, err := g.generateRandomHex(32)
 	if err != nil {
 		return "", err
 	}
@@ -52,7 +52,7 @@ func (g *Generator) GenerateMachineID() (string, error) {
 
 // GenerateMacMachineID generates a new 64-byte MAC machine ID
 func (g *Generator) GenerateMacMachineID() (string, error) {
-	return g.generateRandomHex(32) // 生成64字符的十六进制
+	return g.generateRandomHex(32)
 }
 
 // GenerateDeviceID generates a new device ID in UUID format

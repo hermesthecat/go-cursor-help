@@ -145,9 +145,6 @@ func handlePrivileges(display *ui.Display) error {
 
 func handleWindowsPrivileges(display *ui.Display) error {
 	message := "\nRequesting administrator privileges..."
-	if lang.GetCurrentLanguage() == lang.CN {
-		message = "\n请求管理员权限..."
-	}
 	fmt.Println(message)
 
 	if err := selfElevate(); err != nil {
@@ -268,9 +265,6 @@ func showCompletionMessages(display *ui.Display) {
 	fmt.Println()
 
 	message := "Operation completed!"
-	if lang.GetCurrentLanguage() == lang.CN {
-		message = "操作完成！"
-	}
 	display.ShowInfo(message)
 }
 

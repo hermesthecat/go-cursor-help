@@ -130,33 +130,6 @@ func isUnixChineseLocale() bool {
 
 // texts contains all translations
 var texts = map[Language]TextResource{
-	CN: {
-		// Success messages
-		SuccessMessage: "[√] 配置文件已成功更新！",
-		RestartMessage: "[!] 请手动重启 Cursor 以使更新生效",
-
-		// Progress messages
-		ReadingConfig:     "正在读取配置文件...",
-		GeneratingIds:     "正在生成新的标识符...",
-		CheckingProcesses: "正在检查运行中的 Cursor 实例...",
-		ClosingProcesses:  "正在关闭 Cursor 实例...",
-		ProcessesClosed:   "所有 Cursor 实例已关闭",
-		PleaseWait:        "请稍候...",
-
-		// Error messages
-		ErrorPrefix:    "程序发生严重错误: %v",
-		PrivilegeError: "\n[!] 错误：需要管理员权限",
-
-		// Instructions
-		RunAsAdmin:         "请右键点击程序，选择「以管理员身份运行」",
-		RunWithSudo:        "请使用 sudo 命令运行此程序",
-		SudoExample:        "示例: sudo %s",
-		PressEnterToExit:   "\n按回车键退出程序...",
-		SetReadOnlyMessage: "设置 storage.json 为只读模式, 这将导致 workspace 记录信息丢失等问题",
-
-		// Info messages
-		ConfigLocation: "配置文件位置:",
-	},
 	EN: {
 		// Success messages
 		SuccessMessage: "[√] Configuration file updated successfully!",
